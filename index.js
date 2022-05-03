@@ -22,6 +22,11 @@ app.get('/', (req, res) => {
   res.send('Hello World!\n')
 })
 
+app.post('/', (req, res) => {
+    console.log(req.body)
+    res.send('Hello World!\n')
+  })
+
 app.get('/node/:ip', async function(req, res, next) {
     try {
         console.log(req.params.ip);
