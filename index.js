@@ -11,9 +11,7 @@ const checkNode = async(nodeIp) => {
 try{
     
     if (!nodeIp.includes('http' || 'https')) nodeUrl = `http://${nodeIp}`
-    //console.log(nodeUrl)
     const { data }  = await axios.get(`${nodeUrl}/status`, { timeout: 2000 });
-    //console.log(data);
     const moniker = data.result.node_info.moniker;
     const chainId = data.result.node_info.network;
     const height = parseInt(data.result.sync_info.latest_block_height);
@@ -49,7 +47,9 @@ try{
         behind: behind
     }
 } catch (err) {
-    console.log(nodeUrl, err.toString())
+    if (!err.toString().includes('ECONNREFUSED'))
+        console.log(nodeUrl, err.toString())
+
     return {
         height: false,
         behind: 0
@@ -75,7 +75,6 @@ server.on('connection', function(socket) {
     // The server can also receive data from the client by reading from its socket.
     socket.on('data', async function(chunk) {
         let ip = chunk.toString().replace('\n','')
-        console.log(`Data received from client: ${ip}`);
         const { height, behind }= await checkNode(ip);
         if (!height) return;
 
