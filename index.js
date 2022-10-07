@@ -18,14 +18,25 @@ try{
     const chainId = data.result.node_info.network;
     const height = parseInt(data.result.sync_info.latest_block_height);
     let behind = 0;
+    let latest = 0
     switch (chainId) {
         case "secret-4":
-            if (height > mainnetLatest) mainnetLatest=height
-            else behind = mainnetLatest-height
+            if (height > mainnetLatest) {
+                mainnetLatest = height;
+                latest = height;
+            } else {
+                behind = mainnetLatest - height;
+                latest = mainnetLatest;
+            }
             break;
         case "pulsar-2":
-            if (height > testnetLatest) testnetLatest=height
-            else behind = testnetLatest-height
+            if (height > testnetLatest) {
+                testnetLatest = height;
+                latest = height;
+            } else {
+                behind = testnetLatest - height;
+                latest = testnetLatest;
+            }
             break;
         default:
             break;
@@ -38,7 +49,7 @@ try{
         behind: behind
     }
 } catch (err) {
-    console.log(nodeUrl, err)
+    console.log(nodeUrl, err.toString())
     return {
         height: false,
         behind: 0
