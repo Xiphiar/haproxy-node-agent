@@ -24,7 +24,7 @@ const updateNode = (registry, status, behind) => {
     moniker,
     height,
     behind,
-    last_updated: new Date().toISOString(),
+    last_updated: new Date().toString(),
   });
 };
 
