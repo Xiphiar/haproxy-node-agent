@@ -16,16 +16,16 @@ const updateNode = (registry, status, behind) => {
   const height = parseInt(status.result.sync_info.latest_block_height, 10);
 
   const index = findIndex(registry, id);
-  if (index) {
+  if (index > -1) {
     registry.splice(index, 1);
-    registry.push({
-      id,
-      moniker,
-      height,
-      behind,
-      last_updated: new Date().toISOString(),
-    });
   }
+  registry.push({
+    id,
+    moniker,
+    height,
+    behind,
+    last_updated: new Date().toISOString(),
+  });
 };
 
 export const checkNode = async (nodeIp) => {
