@@ -37,7 +37,7 @@ export const checkNode = async (nodeIp) => {
     const height = parseInt(data.result.sync_info.latest_block_height, 10);
 
     // Get the highest seen height for this chain ID
-    let latest = Heights.get(chainId);
+    let latest = Heights.get(chainId) || 0;
     let behind = 0;
 
     if (height > latest) {
