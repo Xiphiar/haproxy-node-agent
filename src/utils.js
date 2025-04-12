@@ -1,25 +1,25 @@
 import axios from 'axios';
 
-let mainnetLatest = 0;
-let testnetLatest = 0;
+// Key = chain ID. Value = latest block height
+const Heights = new Map();
 
-export const mainnetRegistry = [];
-export const testnetRegistry = [];
+// A registry of all tested nodes. TODO this might be better as a Map
+export const NodeRegistry = [];
 
-const findIndex = (registry, id) => {
-  const index = registry.findIndex((e) => e.id === id);
+const findIndex = (id) => {
+  const index = NodeRegistry.findIndex((e) => e.id === id);
   return index;
 };
 
-const updateNode = (registry, status, behind) => {
+const updateNode = (status, behind) => {
   const { moniker, id } = status.result.node_info;
   const height = parseInt(status.result.sync_info.latest_block_height, 10);
 
-  const index = findIndex(registry, id);
+  const index = findIndex(id);
   if (index > -1) {
-    registry.splice(index, 1);
+    NodeRegistry.splice(index, 1);
   }
-  registry.push({
+  NodeRegistry.push({
     id,
     moniker,
     height,
@@ -35,33 +35,18 @@ export const checkNode = async (nodeIp) => {
     const { data } = await axios.get(`${nodeUrl}/status`, { timeout: 2000 });
     const { moniker, network: chainId } = data.result.node_info;
     const height = parseInt(data.result.sync_info.latest_block_height, 10);
-    let behind = 0;
-    let latest = 0;
-    switch (chainId) {
-      case 'secret-4':
-        if (height > mainnetLatest) {
-          mainnetLatest = height;
-          latest = height;
-        } else {
-          behind = mainnetLatest - height;
-          latest = mainnetLatest;
-        }
-        updateNode(mainnetRegistry, data, behind);
-        break;
-      case 'pulsar-2':
-        if (height > testnetLatest) {
-          testnetLatest = height;
-          latest = height;
-        } else {
-          behind = testnetLatest - height;
-          latest = testnetLatest;
-        }
-        updateNode(testnetRegistry, data, behind);
-        break;
-      default:
-        break;
-    }
 
+    // Get the highest seen height for this chain ID
+    let latest = Heights.get(chainId);
+    let behind = 0;
+
+    if (height > latest) {
+      Heights.set(chainId, height);
+      latest = height;
+    } else {
+      behind = latest - height;
+    }
+    updateNode(data, behind);
     console.log(`${nodeIp} - ${moniker} on ${chainId}:\nHeight: ${height} - Latest: ${latest} - Behind: ${behind}\n`);
 
     return {
@@ -69,6 +54,7 @@ export const checkNode = async (nodeIp) => {
       behind,
     };
   } catch (err) {
+    // Connection errors are handled by the LB, so no need to mark the node as down
     if (!err.toString().includes('ECONNREFUSED')) { console.log(nodeUrl, err.toString()); }
 
     return {

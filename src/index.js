@@ -3,7 +3,7 @@ import Net from 'net';
 import express from 'express';
 import helmet from 'helmet';
 import http from 'http';
-import { checkNode, mainnetRegistry, testnetRegistry } from './utils.js';
+import { checkNode, NodeRegistry } from './utils.js';
 
 const port = 4000;
 const statusPort = process.env.STATUS_PORT || 5000;
@@ -47,15 +47,13 @@ statusApp.get('/', (req, res) => {
 });
 
 statusApp.get('/status', (req, res) => {
-  res.json({ available_routes: ['/mainnet', '/testnet'] });
+  res.json(NodeRegistry);
 });
 
-statusApp.get('/status/mainnet', (req, res) => {
-  res.json({ mainnet_nodes: mainnetRegistry });
-});
-
-statusApp.get('/status/testnet', (req, res) => {
-  res.json({ testnet_nodes: testnetRegistry });
+statusApp.get('/status/:chainId', (req, res) => {
+  const { chainId } = req.params;
+  const nodes = NodeRegistry.filter((node) => node.chainId === chainId);
+  res.json(nodes);
 });
 
 statusApp.use((err, req, res, next) => {
